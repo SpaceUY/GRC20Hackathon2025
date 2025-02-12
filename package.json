@@ -3,8 +3,8 @@
   "version": "1.0.0",
   "main": "src/index.ts",
   "scripts": {
-    "start": "node dist/index.js",
-    "dev": "ts-node src/index.js",
+    "start": "node dist/index.ts",
+    "dev": "ts-node src/index.ts",
     "build": "tsc",
     "watch": "tsc -w",
     "lint": "eslint . -c .ts",
@@ -16,6 +16,7 @@
   "license": "ISC",
   "description": "",
   "devDependencies": {
+    "@types/xml2js": "^0.4.14",
     "@typescript-eslint/eslint-plugin": "^8.24.0",
     "@typescript-eslint/parser": "^8.24.0",
     "eslint": "^9.20.0",
@@ -23,5 +24,12 @@
     "eslint-plugin-prettier": "^5.2.3",
     "prettier": "^3.5.0",
     "ts-node": "^10.9.2"
+  },
+  "dependencies": {
+    "basic-ftp": "^5.0.5",
+    "dotenv": "^16.4.7",
+    "mongoose": "^8.10.0",
+    "xml2js": "^0.6.2",
+    "zod": "^3.24.1"
   }
 }
