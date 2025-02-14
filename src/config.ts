@@ -4,7 +4,11 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 const ConfigSchema = z.object({
-  mongoURL: z.string()
+  MONGOBD_URL: z.string()
 });
 
-export default ConfigSchema.parse(process.env);
+const data = ConfigSchema.parse(process.env);
+
+export default {
+  mongoURL: data.MONGOBD_URL
+};
