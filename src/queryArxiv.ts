@@ -1,30 +1,51 @@
+import path from 'path';
+import fs from 'fs';
 import xml2js from 'xml2js';
 
-async function getAllPapers() {
+const localPath = path.join(__dirname, '../downloads/arxiv');
+
+async function saveAllPapersByPage(categories = 'cat:econ.*') {
   const batchSize = 100;
-  let papers: any[] = [];
   let start = 0;
   let totalResults = 0;
 
+  let pageRetries = 0;
+  const maxPageRetries = 3;
+
   try {
-    const firstBatch = await fetchArxivPapers('cat:econ.*', start, batchSize);
+    const firstBatch = await fetchArxivPapers(categories, start, batchSize);
     totalResults = firstBatch.totalResults;
-    papers = papers.concat(firstBatch.papers);
+    await savePapersToFile(
+      firstBatch.papers,
+      `arxiv_papers_${start}_to${start + batchSize}.json`
+    );
 
     start += batchSize;
 
     while (start < totalResults) {
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+      await new Promise((resolve) => setTimeout(resolve, 1100));
       console.log(
         `Fetching papers ${start} to ${Math.min(start + batchSize, totalResults)} of ${totalResults}`
       );
 
-      const batch = await fetchArxivPapers('cat:econ.*', start, batchSize);
-      papers = papers.concat(batch.papers);
+      const batch = await fetchArxivPapers(categories, start, batchSize);
+      if (batch.papers.length === 0 && pageRetries < maxPageRetries) {
+        console.log(
+          `Page from ${start} to ${start + batchSize} is empty. Retrying...`
+        );
+        pageRetries++;
+        continue;
+      }
+
+      pageRetries = 0;
+
+      await savePapersToFile(
+        batch.papers,
+        `arxiv_papers_${start}_to_${start + batchSize}.json`
+      );
+
       start += batchSize;
     }
-
-    return papers;
   } catch (error) {
     console.error('Error fetching first batch of papers:', error);
     return [];
@@ -32,14 +53,18 @@ async function getAllPapers() {
 }
 
 async function fetchArxivPapers(
-  query = 'cat:econ.*',
+  query,
   start = 0,
   maxResults = 100
 ): Promise<{ papers: any[]; totalResults: number }> {
+  if (!fs.existsSync(localPath)) {
+    fs.mkdirSync(localPath, { recursive: true });
+  }
+
   const baseUrl = 'http://export.arxiv.org/api/query';
   const queryParams = new URLSearchParams({
     search_query: query,
-    start: '0',
+    start: start.toString(),
     max_results: maxResults.toString(),
     sortBy: 'lastUpdatedDate',
     sortOrder: 'descending'
@@ -113,20 +138,20 @@ async function parseArxivResponse(
 }
 
 async function savePapersToFile(papers, filename) {
-  const fs = require('fs').promises;
   try {
-    await fs.writeFile(filename, JSON.stringify(papers, null, 2));
+    await fs.promises.writeFile(
+      path.join(localPath, filename),
+      JSON.stringify(papers, null, 2)
+    );
     console.log(`Successfully saved ${papers.length} papers to ${filename}`);
   } catch (error) {
     console.error('Error saving papers to file:', error);
   }
 }
 
-export async function saveEconPapers() {
+export async function saveEconAndFinancePapers() {
   try {
-    // Fetch papers from the quantitative finance category
-    const econPapers = await getAllPapers();
-    await savePapersToFile(econPapers, 'econ_papers.json');
+    await saveAllPapersByPage('cat:econ.* OR cat:q-fin.*');
   } catch (error) {
     console.error('Error getting econ papers:', error);
   }

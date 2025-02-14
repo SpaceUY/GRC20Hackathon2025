@@ -1,46 +1,37 @@
 import { model, Schema } from 'mongoose';
 
-const authorSchema = new Schema({
-  name: String,
-  email: String
+const personSchema = new Schema({
+  name: { type: String, unique: true }
 });
 
-export const authorModel = model('Author', authorSchema);
+export const personModel = model('Person', personSchema);
 
-const journalSchema = new Schema({
-  name: String,
-  papers: [
-    {
-      type: Schema.Types.ObjectId,
-      ref: 'Paper'
-    }
-  ]
+const academicField = new Schema({
+  name: { type: String, unique: true }
 });
 
-export const journalModel = model('Journal', journalSchema);
+export const academicFieldModel = model('AcademicField', academicField);
 
 const paperSchema = new Schema({
+  name: { type: String, unique: true },
+  abstract: String,
   authors: [
     {
       type: Schema.Types.ObjectId,
-      ref: 'Author'
+      ref: 'Person'
     }
   ],
-  title: String,
-  abstract: String,
-  journal: {
-    type: Schema.Types.ObjectId,
-    ref: 'Journal'
-  },
-  year: Number,
-  pages: String,
-  files: [
+  categories: [
     {
-      url: String,
-      format: String
+      type: Schema.Types.ObjectId,
+      ref: 'AcademicField'
     }
   ],
-  source: String
+  publishDate: Date, // QNEgnzBktEnx638zzVJU73
+  updateDate: Date,
+  downloadLink: String,
+  sourceLink: String,
+  arxivId: String
 });
 
 export const paperModel = model('Paper', paperSchema);
