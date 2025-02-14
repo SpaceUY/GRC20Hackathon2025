@@ -18,6 +18,7 @@ interface ArxivPaper {
   arxivLink: string;
 }
 
+// https://arxiv.org/category_taxonomy
 function getCategory(cat: string): string {
   if (cat.startsWith('econ') || cat.startsWith('q-fin.EC')) return 'Economics';
   if (cat.startsWith('cs')) return 'Computer Science';
