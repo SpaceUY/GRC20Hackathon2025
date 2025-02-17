@@ -41,4 +41,5 @@ We are using the code to upload the previously mentioned areas, but it could be 
 1. Create an `.env` file based on the `.env.template` and fill in the variables.
 2. Open a terminal at the root of the project and run `npm install`.
 3. Check the `index.ts` file and comment out the steps you are not interested in running, you can run all of them at the same time, or one at a time by editing that file.
-4. Run `npm run dev` in the terminal.
+4. (Optional) Run `docker compose up` to start a local MongoDB instance, you can choose to use another service or instance, and replace the link in the `.env` file.
+5. Run `npm run dev` in the terminal.
