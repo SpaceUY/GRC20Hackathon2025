@@ -1,72 +1,62 @@
 import {
   ID,
-  type CreateRelationOp,
-  type DeleteRelationOp,
-  type DeleteTripleOp,
   Relation,
-  type SetTripleOp,
   Triple,
-  SYSTEM_IDS,
   IPFS,
   getChecksumAddress,
-  CONTENT_IDS,
+  type ValueType,
   type Op
 } from '@graphprotocol/grc-20';
+import chalk from 'chalk';
 import { wallet } from './wallet';
 
 const GRC20_API_URL = 'https://api-testnet.grc-20.thegraph.com';
 
-export async function createTriplet(value: string) {
+export async function createTripletOp(
+  value: string,
+  attributeId: string,
+  type: ValueType = 'TEXT'
+) {
   const newEntityId = ID.generate();
-  const namePropertyId = SYSTEM_IDS.NAME_ATTRIBUTE;
 
-  const tripleOp = Triple.make({
-    attributeId: namePropertyId,
+  return Triple.make({
+    attributeId,
     entityId: newEntityId,
     value: {
-      type: 'TEXT',
+      type,
       value
     }
   });
-
-  const hash = await IPFS.publishEdit({
-    name: `Create new entity with name ${value}`,
-    author: wallet.account.address,
-    ops: [tripleOp]
-  });
 }
 
-export async function publishToIPFS(operations: [Op], opName?: string) {
-  const hash = await IPFS.publishEdit({
-    name: opName || 'Publish to IPFS',
-    author: wallet.account.address,
-    ops: operations
-  });
-}
-
-export async function createRelation(
+export async function createRelationOp(
   fromId: string,
   toId: string,
   relationTypeId: string
 ) {
-  const relationOp = Relation.make({
+  return Relation.make({
     fromId,
     toId,
     relationTypeId
   });
+}
 
+export async function publishToIPFS(
+  operations: [Op],
+  opName: string = 'new edit'
+) {
   const hash = await IPFS.publishEdit({
-    name: `Add relation from ${fromId} to ${toId} with type ${relationTypeId}`,
+    name: opName,
     author: wallet.account.address,
-    ops: [relationOp]
+    ops: operations
   });
 
-  console.log('Relation created with IPFS hash:', hash);
+  console.log(`Published ${opName} to IPFS with hash ${chalk.green(hash)}`);
 
   return hash;
 }
 
-export async function publishData(
+export async function publishToGeo(
   spaceId: string,
   cid: string,
   network: 'TESTNET' | 'MAINNET' = 'TESTNET'
@@ -105,7 +95,9 @@ export async function createSpace(name: string) {
   });
 
   const { spaceId } = await result.json();
-  console.log('New Space created with ID:', spaceId);
+  console.log(
+    `New Space ${chalk.green(name)} created with ID: ${chalk.green(spaceId)}`
+  );
 
   return spaceId;
 }

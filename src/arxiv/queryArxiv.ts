@@ -53,7 +53,7 @@ async function saveAllPapersByPage(categories = 'cat:econ.*') {
 }
 
 async function fetchArxivPapers(
-  query,
+  query: string,
   start = 0,
   maxResults = 100
 ): Promise<{ papers: any[]; totalResults: number }> {

@@ -1,8 +1,8 @@
 import { readdir, readFile } from 'fs/promises';
 import { join } from 'path';
 import mongoose from 'mongoose';
-import config from './config/env';
-import { paperModel, personModel, academicFieldModel } from './schemas';
+import config from '../config/env';
+import { paperModel, personModel, academicFieldModel } from '../schemas';
 
 const ARXIV_FOLDER = join(__dirname, '../downloads/arxiv');
 

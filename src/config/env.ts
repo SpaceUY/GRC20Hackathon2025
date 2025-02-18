@@ -7,7 +7,8 @@ const ConfigSchema = z.object({
   MONGOBD_URL: z.string(),
   TESTNET_RPC_URL: z.string(),
   MAINNET_RPC_URL: z.string(),
-  WALLET_PRIVATE_KEY: z.string()
+  WALLET_PRIVATE_KEY: z.string(),
+  SPACE_ID: z.string().optional()
 });
 
 const data = ConfigSchema.parse(process.env);
@@ -20,5 +21,6 @@ export default {
   },
   wallet: {
     privateKey: data.WALLET_PRIVATE_KEY
-  }
+  },
+  spaceId: data.SPACE_ID
 };
