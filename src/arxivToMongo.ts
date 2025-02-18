@@ -1,7 +1,7 @@
 import { readdir, readFile } from 'fs/promises';
 import { join } from 'path';
 import mongoose from 'mongoose';
-import config from './config';
+import config from './config/env';
 import { paperModel, personModel, academicFieldModel } from './schemas';
 
 const ARXIV_FOLDER = join(__dirname, '../downloads/arxiv');
@@ -98,7 +98,7 @@ async function dataToDB(data: ArxivPaper) {
   console.log(`Created new paper: ${paper.name}`);
 }
 
-export async function readArxivFiles() {
+export async function readArxivFilesAndSaveToDB() {
   let connection;
   try {
     connection = await mongoose.connect(config.mongoURL);
