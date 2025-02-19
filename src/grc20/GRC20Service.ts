@@ -1,10 +1,9 @@
 import {
-  ID,
+  Id,
   Relation,
   Triple,
-  IPFS,
+  Ipfs,
   getChecksumAddress,
-  CONTENT_IDS,
   type ValueType,
   type Op
 } from '@graphprotocol/grc-20';
@@ -16,7 +15,7 @@ const GRC20_API_URL = 'https://api-testnet.grc-20.thegraph.com';
 export async function createTripletOp(
   value: string,
   attributeId: string,
-  entityId: string = ID.generate(),
+  entityId: string = Id.generate(),
   type: ValueType = 'TEXT'
 ) {
   return Triple.make({
@@ -45,7 +44,7 @@ export async function publishToIPFS(
   operations: Op[],
   opName: string = 'new edit'
 ) {
-  const hash = await IPFS.publishEdit({
+  const hash = await Ipfs.publishEdit({
     name: opName,
     author: wallet.account.address,
     ops: operations

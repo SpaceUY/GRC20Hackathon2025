@@ -1,4 +1,4 @@
-import { ID, SYSTEM_IDS } from '@graphprotocol/grc-20';
+import { Id, SystemIds } from '@graphprotocol/grc-20';
 import {
   createRelationOp,
   createTripletOp,
@@ -10,11 +10,11 @@ import { env } from '../config';
 async function createAcademicField(name: string) {
   if (!env.spaceId) throw new Error('Space ID not set in .env file');
 
-  const nameAttributeID = SYSTEM_IDS.NAME_ATTRIBUTE;
-  const typeAttributeID = SYSTEM_IDS.TYPES_ATTRIBUTE;
-  const academicFieldTypeId = SYSTEM_IDS.ACADEMIC_FIELD_TYPE;
+  const nameAttributeID = SystemIds.NAME_ATTRIBUTE;
+  const typeAttributeID = SystemIds.TYPES_ATTRIBUTE;
+  const academicFieldTypeId = SystemIds.ACADEMIC_FIELD_TYPE;
 
-  const entityId = ID.generate();
+  const entityId = Id.generate();
 
   const createAcademyFieldOp = await createTripletOp(
     'Economics',
