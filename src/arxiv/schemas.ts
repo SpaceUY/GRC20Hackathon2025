@@ -1,13 +1,17 @@
 import { model, Schema } from 'mongoose';
 
 const personSchema = new Schema({
-  name: { type: String, unique: true }
+  name: { type: String, unique: true },
+  mainnetGrc20Id: String,
+  testnetGrc20Id: String
 });
 
 export const personModel = model('Person', personSchema);
 
 const academicField = new Schema({
-  name: { type: String, unique: true }
+  name: { type: String, unique: true },
+  mainnetGrc20Id: String,
+  testnetGrc20Id: String
 });
 
 export const academicFieldModel = model('AcademicField', academicField);
@@ -31,7 +35,9 @@ const paperSchema = new Schema({
   updateDate: Date,
   downloadLink: String,
   sourceLink: String,
-  arxivId: String
+  arxivId: String,
+  mainnetGrc20Id: String,
+  testnetGrc20Id: String
 });
 
 export const paperModel = model('Paper', paperSchema);

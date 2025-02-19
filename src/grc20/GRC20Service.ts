@@ -9,6 +9,7 @@ import {
 } from '@graphprotocol/grc-20';
 import chalk from 'chalk';
 import { wallet } from './wallet';
+import { env } from '../config';
 
 const GRC20_API_URL = 'https://api-testnet.grc-20.thegraph.com';
 
@@ -40,10 +41,18 @@ export async function createRelationOp(
   });
 }
 
-export async function publishToIPFS(
-  operations: Op[],
-  opName: string = 'new edit'
-) {
+export async function removeEntity(entityId: string, attributeId: string) {
+  return Triple.remove({
+    entityId,
+    attributeId
+  });
+}
+
+export async function removeRelation(relationId: string) {
+  return Relation.remove(relationId);
+}
+
+async function publishToIPFS(operations: Op[], opName: string = 'new edit') {
   const hash = await Ipfs.publishEdit({
     name: opName,
     author: wallet.account.address,
@@ -55,11 +64,13 @@ export async function publishToIPFS(
   return hash;
 }
 
-export async function publishToGeo(
-  spaceId: string,
+async function publishToGeo(
   cid: string,
   network: 'TESTNET' | 'MAINNET' = 'TESTNET'
 ) {
+  const spaceId = env.spaceId;
+  if (!spaceId) throw new Error('Space ID not set in .env file');
+
   const result = await fetch(
     `${GRC20_API_URL}/space/${spaceId}/edit/calldata`,
     {
@@ -84,6 +95,11 @@ export async function publishToGeo(
   );
 
   return txResult;
+}
+
+export async function publish(ops: Op[], opName: string) {
+  const hash = await publishToIPFS(ops, opName);
+  await publishToGeo(hash);
 }
 
 export async function createSpace(name: string) {

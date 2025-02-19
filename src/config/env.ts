@@ -8,7 +8,8 @@ const ConfigSchema = z.object({
   TESTNET_RPC_URL: z.string(),
   MAINNET_RPC_URL: z.string(),
   WALLET_PRIVATE_KEY: z.string(),
-  SPACE_ID: z.string().optional()
+  SPACE_ID: z.string().optional(),
+  CHAIN: z.enum(['testnet', 'mainnet']).default('testnet')
 });
 
 const data = ConfigSchema.parse(process.env);
@@ -22,5 +23,6 @@ export default {
   wallet: {
     privateKey: data.WALLET_PRIVATE_KEY
   },
-  spaceId: data.SPACE_ID
+  spaceId: data.SPACE_ID,
+  chain: data.CHAIN
 };

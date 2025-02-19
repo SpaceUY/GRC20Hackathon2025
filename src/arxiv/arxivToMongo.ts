@@ -1,10 +1,10 @@
 import { readdir, readFile } from 'fs/promises';
 import { join } from 'path';
 import mongoose from 'mongoose';
-import config from '../config/env';
-import { paperModel, personModel, academicFieldModel } from '../schemas';
+import { env } from '../config';
+import { paperModel, personModel, academicFieldModel } from './schemas';
 
-const ARXIV_FOLDER = join(__dirname, '../downloads/arxiv');
+const ARXIV_FOLDER = join(__dirname, '../../downloads/arxiv');
 
 interface ArxivPaper {
   id: string;
@@ -101,7 +101,7 @@ async function dataToDB(data: ArxivPaper) {
 export async function readArxivFilesAndSaveToDB() {
   let connection;
   try {
-    connection = await mongoose.connect(config.mongoURL);
+    connection = await mongoose.connect(env.mongoURL);
     console.log('Connected to MongoDB:', connection.connection.name);
 
     const files = await readdir(ARXIV_FOLDER);
