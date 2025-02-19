@@ -79,7 +79,9 @@ export async function publishToGeo(
     data
   });
 
-  console.log('Publish txResult', txResult);
+  console.log(
+    `Published to Geo with transaction hash ${chalk.green(txResult)}`
+  );
 
   return txResult;
 }

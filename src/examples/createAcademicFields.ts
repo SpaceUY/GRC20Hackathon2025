@@ -17,7 +17,7 @@ async function createAcademicField(name: string) {
   const entityId = Id.generate();
 
   const createAcademyFieldOp = await createTripletOp(
-    'Economics',
+    name,
     nameAttributeID,
     entityId
   );
