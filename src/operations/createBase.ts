@@ -1,8 +1,12 @@
-import mongoose from 'mongoose';
+import mongoose, { Document } from 'mongoose';
 import { env } from '../config';
 import { publish } from '../grc20/GRC20Service';
+import type { Op } from '@graphprotocol/grc-20';
 
-export async function fromDBToGRC20(model: mongoose.Model<any>, createEntity) {
+export async function fromDBToGRC20(
+  model: mongoose.Model<any>,
+  createEntity: (doc) => { entityId: string; operations: Op[] }
+) {
   const connection = await mongoose.connect(env.mongoURL);
   console.log('Connected to MongoDB:', connection.connection.name);
 
@@ -16,25 +20,27 @@ export async function fromDBToGRC20(model: mongoose.Model<any>, createEntity) {
   console.log(`Creating ${documents.length} ${model.modelName} entities`);
 
   try {
-    const tripleOps = (
-      await Promise.all(
-        documents.map(async (document) => {
-          const { entityId, operations } = createEntity(document);
+    const documentUpdates: Document[] = [];
+    const tripleOps: Op[] = documents
+      .map((document) => {
+        const { entityId, operations } = createEntity(document);
 
-          if (env.chain === 'mainnet') {
-            document.mainnetGrc20Id = entityId;
-          } else {
-            document.testnetGrc20Id = entityId;
-          }
+        if (env.chain === 'mainnet') {
+          document.mainnetGrc20Id = entityId;
+        } else {
+          document.testnetGrc20Id = entityId;
+        }
 
-          await document.save();
+        documentUpdates.push(document);
 
-          return operations;
-        })
-      )
-    ).flat();
+        return operations;
+      })
+      .flat();
 
     await publish(tripleOps, `Create ${model.modelName} entities`);
+
+    // We want to save the documents after the operations are published
+    await Promise.all(documentUpdates.map((document) => document.save()));
   } catch (error) {
     console.error('Error creating papers:', error);
   }

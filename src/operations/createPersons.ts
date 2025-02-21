@@ -1,4 +1,3 @@
-import mongoose from 'mongoose';
 import { Id, SystemIds, type Op } from '@graphprotocol/grc-20';
 import {
   createRelationOp,
@@ -9,7 +8,10 @@ import { env } from '../config';
 import { personModel } from '../arxiv/schemas';
 import { fromDBToGRC20 } from './createBase';
 
-function createPerson(person) {
+function createPerson(person): {
+  entityId: string;
+  operations: Op[];
+} {
   if (!env.spaceId) throw new Error('Space ID not set in .env file');
 
   const operations: Op[] = [];

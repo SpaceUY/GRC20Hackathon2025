@@ -1,4 +1,3 @@
-import mongoose from 'mongoose';
 import { Id, SystemIds, type Op } from '@graphprotocol/grc-20';
 import { env } from '../config';
 import { paperModel } from '../arxiv/schemas';
@@ -9,7 +8,10 @@ import {
 } from '../grc20/GRC20Service';
 import { fromDBToGRC20 } from './createBase';
 
-function createPaper(paper) {
+function createPaper(paper): {
+  entityId: string;
+  operations: Op[];
+} {
   if (!env.spaceId) throw new Error('Space ID not set in .env file');
 
   const operations: Op[] = [];
@@ -39,7 +41,7 @@ function createPaper(paper) {
     // Add publish in relation
     createRelationOp(
       entityId,
-      '6Q6Q6Q6Q6Q6Q6Q6Q6Q6Q6Q', //TODO: Add real Arxiv project ID
+      'UG39GhyzSv91SiXSJYLCPV', // arXiv project ID
       '61dgWvCDk8QRW2yrfkHuia' // Published in attribute ID
     )
   );
