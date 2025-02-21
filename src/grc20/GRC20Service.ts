@@ -13,7 +13,9 @@ import { env } from '../config';
 
 const GRC20_API_URL = 'https://api-testnet.grc-20.thegraph.com';
 
-export async function createTripletOp(
+const OPERATIONS_LIMIT = 18000;
+
+export function createTripletOp(
   value: string,
   attributeId: string,
   entityId: string = Id.generate(),
@@ -29,7 +31,7 @@ export async function createTripletOp(
   });
 }
 
-export async function createRelationOp(
+export function createRelationOp(
   fromId: string,
   toId: string,
   relationTypeId: string
@@ -98,8 +100,36 @@ async function publishToGeo(
 }
 
 export async function publish(ops: Op[], opName: string) {
-  const hash = await publishToIPFS(ops, opName);
-  await publishToGeo(hash);
+  if (ops.length === 0) throw new Error('No operations to publish');
+
+  const groups: Op[][] = [];
+  for (let i = 0; i < ops.length; i += OPERATIONS_LIMIT) {
+    groups.push(ops.slice(i, i + OPERATIONS_LIMIT));
+  }
+
+  for (let i = 0; i < groups.length; i++) {
+    const groupName = `${opName}. (${i + 1}/${groups.length})`;
+    console.log(`Publishing ${chalk.green(groupName)}...`);
+
+    let tries = 0;
+    const maxTries = 3;
+    while (tries < maxTries) {
+      try {
+        const hash = await publishToIPFS(groups[i], groupName);
+        await publishToGeo(hash);
+        break;
+      } catch (error) {
+        tries++;
+        if (tries === maxTries) {
+          console.error(
+            `Error publishing to Geo after ${maxTries} attempts ${error}`
+          );
+        } else {
+          console.warn(`Attempt ${tries} failed, retrying...`);
+        }
+      }
+    }
+  }
 }
 
 export async function createSpace(name: string) {
