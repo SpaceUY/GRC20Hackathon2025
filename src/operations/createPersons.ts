@@ -32,8 +32,6 @@ function createPerson(person) {
   };
 }
 
-const existingPersons = {};
-
 async function main() {
   await fromDBToGRC20(personModel, createPerson);
 }
