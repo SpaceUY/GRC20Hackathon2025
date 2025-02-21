@@ -36,6 +36,11 @@ const paperSchema = new Schema({
   downloadLink: String,
   sourceLink: String,
   arxivId: String,
+  /* Ideally both ids are the same, but it could
+   * be the case that those are different
+   * also assigning the id means that the paper
+   * is already published in that network.
+   */
   mainnetGrc20Id: String,
   testnetGrc20Id: String
 });

@@ -6,10 +6,10 @@ import {
   publish
 } from '../grc20/GRC20Service';
 import { env } from '../config';
-import { academicFieldModel } from '../arxiv/schemas';
+import { personModel } from '../arxiv/schemas';
 import { fromDBToGRC20 } from './createBase';
 
-async function createAcademicField(name: string) {
+function createPerson(person) {
   if (!env.spaceId) throw new Error('Space ID not set in .env file');
 
   const operations: Op[] = [];
@@ -18,23 +18,24 @@ async function createAcademicField(name: string) {
 
   operations.push(
     // Assign name to entity
-    createTripletOp(name, SystemIds.NAME_ATTRIBUTE, entityId)
+    createTripletOp(person.name, SystemIds.NAME_ATTRIBUTE, entityId)
   );
 
   operations.push(
-    // Add academic field type relation
-    createRelationOp(
-      entityId,
-      SystemIds.ACADEMIC_FIELD_TYPE,
-      SystemIds.TYPES_ATTRIBUTE
-    )
+    // Add person type relation
+    createRelationOp(entityId, SystemIds.PERSON_TYPE, SystemIds.TYPES_ATTRIBUTE)
   );
 
-  return { entityId, operations };
+  return {
+    entityId,
+    operations
+  };
 }
 
+const existingPersons = {};
+
 async function main() {
-  await fromDBToGRC20(academicFieldModel, createAcademicField);
+  await fromDBToGRC20(personModel, createPerson);
 }
 
 main();
