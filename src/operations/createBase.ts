@@ -1,11 +1,12 @@
 import mongoose, { Document } from 'mongoose';
 import { env } from '../config';
-import { publish } from '../grc20/GRC20Service';
+import { publish, searchQuery } from '../grc20/GRC20Service';
 import type { Op } from '@graphprotocol/grc-20';
 
 export async function fromDBToGRC20(
   model: mongoose.Model<any>,
-  createEntity: (doc) => { entityId: string; operations: Op[] }
+  createEntity: (doc) => { entityId: string; operations: Op[] },
+  limit?: number
 ) {
   const connection = await mongoose.connect(env.mongoURL);
   console.log('Connected to MongoDB:', connection.connection.name);
@@ -13,29 +14,57 @@ export async function fromDBToGRC20(
   const fieldToCheck =
     env.chain === 'mainnet' ? 'mainnetGrc20Id' : 'testnetGrc20Id';
 
-  const documents = await model.find({
-    $or: [{ [fieldToCheck]: null }, { [fieldToCheck]: { $exists: false } }]
+  let query = model.find({
+    // $or: [{ [fieldToCheck]: null }, { [fieldToCheck]: { $exists: false } }]
   });
+
+  if (limit !== undefined) {
+    query = query.limit(limit);
+  }
+
+  const documents = await query;
 
   console.log(`Creating ${documents.length} ${model.modelName} entities`);
 
   try {
     const documentUpdates: Document[] = [];
-    const tripleOps: Op[] = documents
-      .map((document) => {
-        const { entityId, operations } = createEntity(document);
+    const tripleOps: Op[] = [];
 
-        if (env.chain === 'mainnet') {
-          document.mainnetGrc20Id = entityId;
-        } else {
-          document.testnetGrc20Id = entityId;
-        }
+    await Promise.all(
+      documents
+        .map(async (document) => {
+          if (document.mainnetGrc20Id || document.testnetGrc20Id) {
+            const existingInGRC20 = await searchQuery(document.name);
 
-        documentUpdates.push(document);
+            if (
+              existingInGRC20
+                .map((entity) => entity.id)
+                .includes(
+                  env.chain === 'mainnet'
+                    ? document.mainnetGrc20Id
+                    : document.testnetGrc20Id
+                )
+            ) {
+              console.log(
+                `Entity ${document.name} already exists in GRC20, skipping`
+              );
+              return;
+            }
+          }
 
-        return operations;
-      })
-      .flat();
+          const { entityId, operations } = createEntity(document);
+
+          if (env.chain === 'mainnet') {
+            document.mainnetGrc20Id = entityId;
+          } else {
+            document.testnetGrc20Id = entityId;
+          }
+
+          documentUpdates.push(document);
+          tripleOps.push(...operations);
+        })
+        .flat()
+    );
 
     await publish(tripleOps, `Create ${model.modelName} entities`);
 
