@@ -1,4 +1,4 @@
-import { Id, SystemIds, type Op } from '@graphprotocol/grc-20';
+import { SystemIds, type Op } from '@graphprotocol/grc-20';
 import {
   createRelationOp,
   createTripletOp,

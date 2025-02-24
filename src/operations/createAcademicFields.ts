@@ -1,15 +1,10 @@
-import mongoose from 'mongoose';
 import { Id, SystemIds, type Op } from '@graphprotocol/grc-20';
-import {
-  createRelationOp,
-  createTripletOp,
-  publish
-} from '../grc20/GRC20Service';
+import { createRelationOp, createTripletOp } from '../grc20/GRC20Service';
 import { env } from '../config';
 import { academicFieldModel } from '../arxiv/schemas';
 import { fromDBToGRC20 } from './createBase';
 
-async function createAcademicField(name: string) {
+function createAcademicField(name: string) {
   if (!env.spaceId) throw new Error('Space ID not set in .env file');
 
   const operations: Op[] = [];
