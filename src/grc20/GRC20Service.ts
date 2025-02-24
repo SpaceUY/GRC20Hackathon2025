@@ -19,7 +19,7 @@ const GRC20_API_URL =
 if (env.chain === 'mainnet')
   throw new Error('API URL for mainnet not implemented');
 
-const OPERATIONS_LIMIT = 1000;
+const OPERATIONS_LIMIT = 2500;
 
 export async function searchQuery(query: string) {
   const words = query.split(/\s+/).filter((word) => word.length > 0);

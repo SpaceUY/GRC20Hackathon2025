@@ -1,13 +1,23 @@
 import mongoose, { Document } from 'mongoose';
-import { env } from '../config';
-import { publish, searchQuery } from '../grc20/GRC20Service';
 import type { Op } from '@graphprotocol/grc-20';
+import { env } from '../config';
+import { publish } from '../grc20/GRC20Service';
+import type { NewEntity } from '../grc20/createEntity';
+import chalk from 'chalk';
 
-export async function fromDBToGRC20(
-  model: mongoose.Model<any>,
-  createEntity: (doc) => { entityId: string; operations: Op[] },
-  limit?: number
-) {
+export async function fromDBToGRC20({
+  model,
+  createEntity,
+  limit,
+  populate,
+  searchQuery
+}: {
+  model: mongoose.Model<any>;
+  createEntity: (doc) => NewEntity;
+  limit?: number;
+  populate?: string[];
+  searchQuery?: any;
+}) {
   const connection = await mongoose.connect(env.mongoURL);
   console.log('Connected to MongoDB:', connection.connection.name);
 
@@ -15,8 +25,11 @@ export async function fromDBToGRC20(
     env.chain === 'mainnet' ? 'mainnetGrc20Id' : 'testnetGrc20Id';
 
   let query = model.find({
+    ...searchQuery,
     $or: [{ [fieldToCheck]: null }, { [fieldToCheck]: { $exists: false } }]
   });
+
+  if (populate !== undefined) query = query.populate(populate);
 
   if (limit !== undefined) {
     query = query.limit(limit);
@@ -24,7 +37,9 @@ export async function fromDBToGRC20(
 
   const documents = await query;
 
-  console.log(`Creating ${documents.length} ${model.modelName} entities`);
+  console.log(
+    `${chalk.green(`Creating ${documents.length} ${model.modelName} entities`)}`
+  );
 
   try {
     const documentUpdates: Document[] = [];
