@@ -5,15 +5,28 @@ import {
   Ipfs,
   getChecksumAddress,
   type ValueType,
-  type Op
+  type Op,
+  Graph
 } from '@graphprotocol/grc-20';
 import chalk from 'chalk';
 import { wallet } from './wallet';
 import { env } from '../config';
 
-const GRC20_API_URL = 'https://api-testnet.grc-20.thegraph.com';
+const GRC20_API_URL =
+  env.chain === 'mainnet' ? '' : 'https://api-testnet.grc-20.thegraph.com';
 
-const OPERATIONS_LIMIT = 18000;
+// TODO: Implement mainnet API URL
+if (env.chain === 'mainnet')
+  throw new Error('API URL for mainnet not implemented');
+
+const OPERATIONS_LIMIT = 10000;
+
+export async function searchQuery(query: string) {
+  const response = await fetch(`${GRC20_API_URL}/search/${query}`);
+  const { results } = await response.json();
+
+  return results;
+}
 
 export function createTripletOp(
   value: string,
@@ -34,12 +47,14 @@ export function createTripletOp(
 export function createRelationOp(
   fromId: string,
   toId: string,
-  relationTypeId: string
+  relationTypeId: string,
+  relationId?: string
 ) {
   return Relation.make({
     fromId,
     toId,
-    relationTypeId
+    relationTypeId,
+    relationId
   });
 }
 
