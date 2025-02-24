@@ -15,7 +15,7 @@ export async function fromDBToGRC20(
     env.chain === 'mainnet' ? 'mainnetGrc20Id' : 'testnetGrc20Id';
 
   let query = model.find({
-    // $or: [{ [fieldToCheck]: null }, { [fieldToCheck]: { $exists: false } }]
+    $or: [{ [fieldToCheck]: null }, { [fieldToCheck]: { $exists: false } }]
   });
 
   if (limit !== undefined) {
@@ -30,47 +30,30 @@ export async function fromDBToGRC20(
     const documentUpdates: Document[] = [];
     const tripleOps: Op[] = [];
 
-    await Promise.all(
-      documents
-        .map(async (document) => {
-          if (document.mainnetGrc20Id || document.testnetGrc20Id) {
-            const existingInGRC20 = await searchQuery(document.name);
+    documents.forEach((document) => {
+      const { entityId, operations } = createEntity(document);
 
-            if (
-              existingInGRC20
-                .map((entity) => entity.id)
-                .includes(
-                  env.chain === 'mainnet'
-                    ? document.mainnetGrc20Id
-                    : document.testnetGrc20Id
-                )
-            ) {
-              console.log(
-                `Entity ${document.name} already exists in GRC20, skipping`
-              );
-              return;
-            }
-          }
+      if (env.chain === 'mainnet') {
+        document.mainnetGrc20Id = entityId;
+      } else {
+        document.testnetGrc20Id = entityId;
+      }
 
-          const { entityId, operations } = createEntity(document);
+      documentUpdates.push(document);
+      tripleOps.push(...operations);
+    });
 
-          if (env.chain === 'mainnet') {
-            document.mainnetGrc20Id = entityId;
-          } else {
-            document.testnetGrc20Id = entityId;
-          }
+    if (tripleOps.length === 0) {
+      console.log('No new entities to create');
+    } else {
+      await publish(tripleOps, `Create ${model.modelName} entities`);
 
-          documentUpdates.push(document);
-          tripleOps.push(...operations);
-        })
-        .flat()
-    );
-
-    await publish(tripleOps, `Create ${model.modelName} entities`);
-
-    // We want to save the documents after the operations are published
-    await Promise.all(documentUpdates.map((document) => document.save()));
+      // We want to save the documents after the operations are published
+      await Promise.all(documentUpdates.map((document) => document.save()));
+    }
+    process.exit(0);
   } catch (error) {
     console.error('Error creating papers:', error);
+    process.exit(1);
   }
 }

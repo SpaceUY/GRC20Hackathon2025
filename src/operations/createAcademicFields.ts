@@ -4,16 +4,19 @@ import { env } from '../config';
 import { academicFieldModel } from '../arxiv/schemas';
 import { fromDBToGRC20 } from './createBase';
 
-function createAcademicField(name: string) {
+export function createAcademicField(academicField) {
   if (!env.spaceId) throw new Error('Space ID not set in .env file');
 
   const operations: Op[] = [];
 
-  const entityId = Id.generate();
+  const entityId =
+    academicField.mainnetGrc20Id ||
+    academicField.testnetGrc20Id ||
+    Id.generate();
 
   operations.push(
     // Assign name to entity
-    createTripletOp(name, SystemIds.NAME_ATTRIBUTE, entityId)
+    createTripletOp(academicField.name, SystemIds.NAME_ATTRIBUTE, entityId)
   );
 
   operations.push(
@@ -32,4 +35,4 @@ async function main() {
   await fromDBToGRC20(academicFieldModel, createAcademicField);
 }
 
-main();
+// main();

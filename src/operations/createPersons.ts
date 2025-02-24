@@ -1,14 +1,10 @@
 import { Id, SystemIds, type Op } from '@graphprotocol/grc-20';
-import {
-  createRelationOp,
-  createTripletOp,
-  publish
-} from '../grc20/GRC20Service';
+import { createRelationOp, createTripletOp } from '../grc20/GRC20Service';
 import { env } from '../config';
 import { personModel } from '../arxiv/schemas';
 import { fromDBToGRC20 } from './createBase';
 
-function createPerson(person): {
+export function createPerson(person): {
   entityId: string;
   operations: Op[];
 } {
@@ -16,7 +12,8 @@ function createPerson(person): {
 
   const operations: Op[] = [];
 
-  const entityId = Id.generate();
+  const entityId =
+    person.mainnetGrc20Id || person.testnetGrc20Id || Id.generate();
 
   operations.push(
     // Assign name to entity
@@ -38,4 +35,4 @@ async function main() {
   await fromDBToGRC20(personModel, createPerson);
 }
 
-main();
+// main();
