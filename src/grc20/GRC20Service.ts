@@ -19,13 +19,17 @@ const GRC20_API_URL =
 if (env.chain === 'mainnet')
   throw new Error('API URL for mainnet not implemented');
 
-const OPERATIONS_LIMIT = 10000;
+const OPERATIONS_LIMIT = 1000;
 
 export async function searchQuery(query: string) {
-  const response = await fetch(`${GRC20_API_URL}/search/${query}`);
-  const { results } = await response.json();
+  const words = query.split(/\s+/).filter((word) => word.length > 0);
+  const queryString = words
+    .map((word) => `q=${encodeURIComponent(word)}`)
+    .join('&');
+  const response = await fetch(`${GRC20_API_URL}/search?${queryString}`);
+  const data = await response.json();
 
-  return results;
+  return data.results;
 }
 
 export function createTripletOp(
