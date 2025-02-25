@@ -97,7 +97,7 @@ export function createPaper(paper): NewEntity {
     createRelationOp(
       entityId,
       'UG39GhyzSv91SiXSJYLCPV', // arXiv project ID
-      '61dgWvCDk8QRW2yrfkHuia', // Published in attribute ID
+      '61dgWvCDk8QRW2yrfkHuia', // Published in property ID
       projectRelationId
     )
   );
@@ -150,6 +150,16 @@ export function createPaper(paper): NewEntity {
         );
       })
       .filter(Boolean)
+  );
+
+  operations.push(
+    // Add publish date
+    createTripletOp(
+      paper.publishDate.toISOString(),
+      'KPNjGaLx5dKofVhT6Dfw22', // Publish date property ID
+      entityId,
+      'TIME'
+    )
   );
 
   operations.push(
