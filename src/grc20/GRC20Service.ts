@@ -80,15 +80,22 @@ async function publishToIPFS(operations: Op[], opName: string = 'new edit') {
     ops: operations
   });
 
-  console.log(`Published ${opName} to IPFS with hash ${chalk.green(hash)}`);
+  console.log(
+    `Published ${chalk.green(opName)} to IPFS with hash ${chalk.green(hash)}`
+  );
 
   return hash;
 }
 
-async function publishToGeo(
-  cid: string,
-  network: 'TESTNET' | 'MAINNET' = 'TESTNET'
-) {
+async function publishToGeo({
+  cid,
+  network = 'TESTNET',
+  opName = 'new edit'
+}: {
+  cid: string;
+  network?: 'TESTNET' | 'MAINNET';
+  opName?: string;
+}) {
   const spaceId = env.spaceId;
   if (!spaceId) throw new Error('Space ID not set in .env file');
 
@@ -112,7 +119,7 @@ async function publishToGeo(
   });
 
   console.log(
-    `Published to Geo with transaction hash ${chalk.green(txResult)}`
+    `Published ${chalk.green(opName)} to Geo with transaction hash ${chalk.green(txResult)}`
   );
 
   return txResult;
@@ -127,7 +134,7 @@ export async function publish(ops: Op[], opName: string) {
   }
 
   for (let i = 0; i < groups.length; i++) {
-    const groupName = `${opName}. (${i + 1}/${groups.length})`;
+    const groupName = `${opName}.${groups.length > 1 ? ` (${i + 1}/${groups.length})` : ''}`;
     console.log(`Publishing ${chalk.green(groupName)}...`);
 
     let tries = 0;
@@ -135,7 +142,7 @@ export async function publish(ops: Op[], opName: string) {
     while (tries < maxTries) {
       try {
         const hash = await publishToIPFS(groups[i], groupName);
-        await publishToGeo(hash);
+        await publishToGeo({ cid: hash, opName: groupName });
         break;
       } catch (error) {
         tries++;
