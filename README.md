@@ -20,7 +20,8 @@ For the academic field spaces, it is important to check for already existing one
 
 The papers will have a title, an abstract, authors, categories, published date, last update date, a download link, and an arxiv id or link so anyone can track its source.
 
-![image](https://github.com/user-attachments/assets/815e5f5d-25b3-4e2b-8f94-9ecf14b1456b)
+![image](https://github.com/user-attachments/assets/d0994986-28da-48a5-ad73-7956d637884b)
+
 
 ## How to use the code
 
