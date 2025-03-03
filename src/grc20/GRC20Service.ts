@@ -21,6 +21,12 @@ if (env.chain === 'mainnet')
 
 const OPERATIONS_LIMIT = 2500;
 
+export async function createImage(imageUrl: string) {
+  return Graph.createImage({
+    url: imageUrl
+  });
+}
+
 export async function searchQuery(query: string) {
   const words = query.split(/\s+/).filter((word) => word.length > 0);
   const queryString = words

@@ -1,11 +1,13 @@
-import { SystemIds, type Op } from '@graphprotocol/grc-20';
+import fs from 'fs';
+import path from 'path';
+import { Graph, SystemIds, type Op } from '@graphprotocol/grc-20';
 import {
   createRelationOp,
   createTripletOp,
   publish
 } from '../grc20/GRC20Service';
 
-function createProject() {
+async function createProject() {
   const operations: Op[] = [];
 
   const entityId = 'UG39GhyzSv91SiXSJYLCPV';
@@ -43,11 +45,55 @@ function createProject() {
     )
   );
 
+  // Upload banner image
+  const { id: bannerId, ops: createBannerOps } = await Graph.createImage({
+    blob: new Blob(
+      [fs.readFileSync(path.join(__dirname, '../arxiv/img/arxiv-header.png'))],
+      {
+        type: 'image/png'
+      }
+    )
+  });
+
+  operations.push(
+    // Add banner to entity
+    createRelationOp(
+      entityId, // arXiv entity ID
+      bannerId,
+      SystemIds.COVER_PROPERTY
+    )
+  );
+
+  // Upload avatar image
+  const { id: avatarId, ops: createAvatarOps } = await Graph.createImage({
+    blob: new Blob(
+      [
+        fs.readFileSync(
+          path.join(__dirname, '../arxiv/img/arxiv-logo-square.png')
+        )
+      ],
+      {
+        type: 'image/png'
+      }
+    )
+  });
+
+  operations.push(...createAvatarOps);
+
+  operations.push(
+    // Add avatar to entity
+    createRelationOp(
+      entityId, // arXiv entity ID
+      avatarId,
+      '399xP4sGWSoepxeEnp3UdR' // avatar property ID
+    )
+  );
+
   return operations;
 }
 
 async function main() {
-  const operations = createProject();
+  const operations = await createProject();
   await publish(operations, 'Create arXiv project entity');
 }
 

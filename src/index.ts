@@ -21,7 +21,7 @@ const main = async () => {
     spaceId = await createSpace('new test space');
   }
 
-  // 4- We publish the information to the space
+  // 4- Publish the information to the space
 };
 
 main();
