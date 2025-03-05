@@ -9,7 +9,7 @@ import {
   Graph
 } from '@graphprotocol/grc-20';
 import chalk from 'chalk';
-import { wallet } from './wallet';
+import { walletClient } from './wallet';
 import { env } from '../config';
 
 const GRC20_API_URL =
@@ -82,7 +82,7 @@ export async function removeRelation(relationId: string) {
 async function publishToIPFS(operations: Op[], opName: string = 'new edit') {
   const hash = await Ipfs.publishEdit({
     name: opName,
-    author: wallet.account.address,
+    author: walletClient.account.address,
     ops: operations
   });
 
@@ -118,7 +118,7 @@ async function publishToGeo({
 
   const { to, data } = await result.json();
 
-  const txResult = await wallet.sendTransaction({
+  const txResult = await walletClient.sendTransaction({
     to,
     value: 0n,
     data
@@ -168,7 +168,7 @@ export async function createSpace(name: string) {
   const result = await fetch(`${GRC20_API_URL}/deploy`, {
     method: 'POST',
     body: JSON.stringify({
-      initialEditorAddress: getChecksumAddress(wallet.account.address),
+      initialEditorAddress: getChecksumAddress(walletClient.account.address),
       spaceName: name
     })
   });

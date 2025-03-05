@@ -7,7 +7,8 @@ const ConfigSchema = z.object({
   MONGOBD_URL: z.string(),
   TESTNET_RPC_URL: z.string(),
   MAINNET_RPC_URL: z.string(),
-  WALLET_PRIVATE_KEY: z.string(),
+  WALLET_PRIVATE_KEY_TESTNET: z.string(),
+  WALLET_PRIVATE_KEY_MAINNET: z.string(),
   SPACE_ID: z.string().optional(),
   CHAIN: z.enum(['testnet', 'mainnet']).default('testnet')
 });
@@ -21,7 +22,10 @@ export default {
     mainnet: data.MAINNET_RPC_URL
   },
   wallet: {
-    privateKey: data.WALLET_PRIVATE_KEY
+    privateKey: {
+      testnet: data.WALLET_PRIVATE_KEY_TESTNET,
+      mainnet: data.WALLET_PRIVATE_KEY_MAINNET
+    }
   },
   spaceId: data.SPACE_ID,
   chain: data.CHAIN

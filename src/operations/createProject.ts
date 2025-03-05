@@ -10,7 +10,7 @@ import {
 async function createProject() {
   const operations: Op[] = [];
 
-  const entityId = 'UG39GhyzSv91SiXSJYLCPV';
+  const entityId = 'AU2SsFo229T757y2V1JzJ3'; // arXiv entity ID
 
   operations.push(
     // Assign name to entity
