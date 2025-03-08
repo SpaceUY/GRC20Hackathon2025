@@ -11,10 +11,19 @@ export const personModel = model('Person', personSchema);
 const academicField = new Schema({
   name: { type: String, unique: true },
   mainnetGrc20Id: String,
+  mainnetSpaceId: String,
   testnetGrc20Id: String
 });
 
 export const academicFieldModel = model('AcademicField', academicField);
+
+const tagSchema = new Schema({
+  name: { type: String, unique: true },
+  mainnetGrc20Id: String,
+  testnetGrc20Id: String
+});
+
+export const tagModel = model('Tag', tagSchema);
 
 const paperSchema = new Schema({
   name: { type: String, unique: true },
@@ -29,6 +38,12 @@ const paperSchema = new Schema({
     {
       type: Schema.Types.ObjectId,
       ref: 'AcademicField'
+    }
+  ],
+  tags: [
+    {
+      type: Schema.Types.ObjectId,
+      ref: 'Tag'
     }
   ],
   publishDate: Date, // QNEgnzBktEnx638zzVJU73

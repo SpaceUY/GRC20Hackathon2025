@@ -2,7 +2,14 @@ import { readdir, readFile } from 'fs/promises';
 import { join } from 'path';
 import mongoose from 'mongoose';
 import { env } from '../config';
-import { paperModel, personModel, academicFieldModel } from './schemas';
+import {
+  paperModel,
+  personModel,
+  academicFieldModel,
+  tagModel
+} from './schemas';
+import { ARXIV_TAXONOMY } from './taxonomy';
+import chalk from 'chalk';
 
 const ARXIV_FOLDER = join(__dirname, '../../downloads/arxiv');
 
@@ -18,35 +25,10 @@ interface ArxivPaper {
   arxivLink: string;
 }
 
-// https://arxiv.org/category_taxonomy
-function getCategory(cat: string): string {
-  if (cat.startsWith('econ') || cat.startsWith('q-fin.EC')) return 'Economics';
-  if (cat.startsWith('cs')) return 'Computer Science';
-  if (cat.startsWith('eess'))
-    return 'Electrical Engineering and Systems Science';
-  if (cat.startsWith('math')) return 'Mathematics';
-  if (
-    cat.startsWith('astro') ||
-    cat.startsWith('cond-mat') ||
-    cat.startsWith('gr-qc') ||
-    cat.startsWith('hep') ||
-    cat.startsWith('math-ph') ||
-    cat.startsWith('nlin') ||
-    cat.startsWith('nucl') ||
-    cat.startsWith('physics') ||
-    cat.startsWith('quant-ph')
-  )
-    return 'Physics';
-  if (cat.startsWith('q-bio')) return 'Quantitative Biology';
-  if (cat.startsWith('q-fin')) return 'Quantitative Finance';
-  if (cat.startsWith('stat')) return 'Statistics';
-  return 'Other';
-}
-
 async function dataToDB(data: ArxivPaper) {
   const existingPaper = await paperModel.findOne({ arxivId: data.id });
-  if (existingPaper) {
-    console.log(`Paper ${data.title} already exists in the database`);
+  if (existingPaper && existingPaper.tags.length > 0) {
+    // console.log(`Paper ${data.title} already exists in the database`);
     return;
   }
 
@@ -66,36 +48,75 @@ async function dataToDB(data: ArxivPaper) {
 
   const categories = await Promise.all(
     data.categories.map(async (category: any) => {
-      const academicField = await academicFieldModel.findOne({
-        name: getCategory(category)
-      });
+      const taxonomy = ARXIV_TAXONOMY[category] || { academicField: 'Other' };
 
-      if (!academicField) {
-        const newAcademicField = await academicFieldModel.create({
-          name: getCategory(category)
-        });
-        console.log(`Created new academic field: ${newAcademicField.name}`);
+      const { academicField } = taxonomy;
 
-        return newAcademicField;
-      }
+      let academicFieldObj;
 
-      return academicField;
+      // Create academic field
+      academicFieldObj = await academicFieldModel.findOneAndUpdate(
+        {
+          name: academicField
+        },
+        {
+          name: academicField
+        },
+        {
+          upsert: true,
+          new: true
+        }
+      );
+
+      if (academicFieldObj.isNew)
+        console.log(
+          chalk.green(`Created new academic field: ${academicFieldObj.name}`)
+        );
+
+      return academicFieldObj;
     })
   );
 
-  const paper = await paperModel.create({
-    name: data.title,
-    abstract: data.abstract,
-    authors: authors.map((author) => author?._id),
-    categories: categories.map((category) => category?._id),
-    publishDate: new Date(data.published),
-    updateDate: new Date(data.updated),
-    downloadLink: data.pdfLink,
-    sourceLink: data.arxivLink,
-    arxivId: data.id
-  });
+  const tags = await Promise.all(
+    data.categories.map(async (category: any) => {
+      const { tag } = ARXIV_TAXONOMY[category] || { tag: 'Other' };
 
-  console.log(`Created new paper: ${paper.name}`);
+      const tagObj = await tagModel.findOneAndUpdate(
+        { name: tag },
+        { name: tag },
+        { upsert: true, new: true }
+      );
+
+      if (tagObj.isNew)
+        console.log(chalk.green(`Created new tag: ${tagObj.name}`));
+
+      return tagObj;
+    })
+  );
+
+  const paper = await paperModel.findOneAndUpdate(
+    { arxivId: data.id },
+    {
+      name: data.title,
+      abstract: data.abstract,
+      authors: authors.map((author) => author?._id),
+      categories: categories.map((category) => category?._id),
+      tags: tags.map((tag) => tag?._id),
+      publishDate: new Date(data.published),
+      updateDate: new Date(data.updated),
+      downloadLink: data.pdfLink,
+      sourceLink: data.arxivLink,
+      arxivId: data.id
+    },
+    {
+      new: true,
+      upsert: true,
+      setDefaultsOnInsert: true
+    }
+  );
+
+  const action = paper.isNew ? 'Created new' : 'Updated';
+  console.log(chalk.green(`${action} paper: ${paper.name}`));
 }
 
 export async function readArxivFilesAndSaveToDB() {
