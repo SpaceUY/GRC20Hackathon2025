@@ -10,13 +10,15 @@ export async function fromDBToGRC20({
   createEntity,
   limit,
   populate,
-  searchQuery
+  searchQuery,
+  spaceId
 }: {
   model: mongoose.Model<any>;
   createEntity: (doc) => NewEntity;
   limit?: number;
   populate?: string[];
   searchQuery?: any;
+  spaceId?: string;
 }) {
   const connection = await mongoose.connect(env.mongoURL);
   console.log('Connected to MongoDB:', connection.connection.name);
@@ -56,12 +58,20 @@ export async function fromDBToGRC20({
 
       documentUpdates.push(document);
       tripleOps.push(...operations);
+
+      console.log(
+        chalk.green(`Created new ${model.modelName} entity: ${document.name}`)
+      );
     });
 
     if (tripleOps.length === 0) {
       console.log('No new entities to create');
     } else {
-      await publish(tripleOps, `Create ${model.modelName} entities`);
+      await publish({
+        ops: tripleOps,
+        opName: `Create ${model.modelName} entities`,
+        spaceId
+      });
 
       // We want to save the documents after the operations are published
       await Promise.all(documentUpdates.map((document) => document.save()));

@@ -7,7 +7,7 @@ async function main() {
     model: paperModel,
     createEntity: createPaper,
     limit: 1,
-    populate: ['authors', 'categories']
+    populate: ['authors', 'categories', 'tags']
   });
 }
 

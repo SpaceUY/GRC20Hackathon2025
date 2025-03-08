@@ -9,15 +9,10 @@ import {
   Graph
 } from '@graphprotocol/grc-20';
 import chalk from 'chalk';
-import { walletClient } from './wallet';
+import { smartWallet, wallet } from './wallet';
 import { env } from '../config';
 
-const GRC20_API_URL =
-  env.chain === 'mainnet' ? '' : 'https://api-testnet.grc-20.thegraph.com';
-
-// TODO: Implement mainnet API URL
-if (env.chain === 'mainnet')
-  throw new Error('API URL for mainnet not implemented');
+const GRC20_API_URL = 'https://api-testnet.grc-20.thegraph.com';
 
 const OPERATIONS_LIMIT = 2500;
 
@@ -75,14 +70,18 @@ export async function removeEntity(entityId: string, attributeId: string) {
   });
 }
 
-export async function removeRelation(relationId: string) {
+export function removeRelation(relationId: string) {
   return Relation.remove(relationId);
 }
 
 async function publishToIPFS(operations: Op[], opName: string = 'new edit') {
+  const author =
+    env.chain === 'mainnet'
+      ? (await smartWallet).account.address
+      : wallet.account.address;
   const hash = await Ipfs.publishEdit({
     name: opName,
-    author: walletClient.account.address,
+    author,
     ops: operations
   });
 
@@ -95,15 +94,19 @@ async function publishToIPFS(operations: Op[], opName: string = 'new edit') {
 
 async function publishToGeo({
   cid,
-  network = 'TESTNET',
-  opName = 'new edit'
+  network = env.chain === 'mainnet' ? 'MAINNET' : 'TESTNET',
+  opName = 'new edit',
+  spaceId = env.chain === 'mainnet' ? env.spaceId.mainnet : env.spaceId.testnet
 }: {
   cid: string;
   network?: 'TESTNET' | 'MAINNET';
   opName?: string;
+  spaceId?: string;
 }) {
-  const spaceId = env.spaceId;
-  if (!spaceId) throw new Error('Space ID not set in .env file');
+  if (!spaceId)
+    throw new Error(
+      'Missing space ID, set SPACE_ID in .env file or parse it as an argument'
+    );
 
   const result = await fetch(
     `${GRC20_API_URL}/space/${spaceId}/edit/calldata`,
@@ -118,11 +121,22 @@ async function publishToGeo({
 
   const { to, data } = await result.json();
 
-  const txResult = await walletClient.sendTransaction({
-    to,
-    value: 0n,
-    data
-  });
+  let txResult;
+  if (env.chain === 'mainnet') {
+    txResult = await (
+      await smartWallet
+    ).sendTransaction({
+      to,
+      value: 0n,
+      data
+    });
+  } else {
+    txResult = await wallet.sendTransaction({
+      to,
+      value: 0n,
+      data
+    });
+  }
 
   console.log(
     `Published ${chalk.green(opName)} to Geo with transaction hash ${chalk.green(txResult)}`
@@ -131,7 +145,20 @@ async function publishToGeo({
   return txResult;
 }
 
-export async function publish(ops: Op[], opName: string) {
+export async function publish({
+  ops,
+  opName,
+  spaceId = env.chain === 'mainnet' ? env.spaceId.mainnet : env.spaceId.testnet
+}: {
+  ops: Op[];
+  opName: string;
+  spaceId?: string;
+}) {
+  if (!spaceId)
+    throw new Error(
+      'Missing space ID, set SPACE_ID in .env file or parse it as an argument'
+    );
+
   if (ops.length === 0) throw new Error('No operations to publish');
 
   const groups: Op[][] = [];
@@ -148,7 +175,11 @@ export async function publish(ops: Op[], opName: string) {
     while (tries < maxTries) {
       try {
         const hash = await publishToIPFS(groups[i], groupName);
-        await publishToGeo({ cid: hash, opName: groupName });
+        await publishToGeo({
+          cid: hash,
+          opName: groupName,
+          spaceId
+        });
         break;
       } catch (error) {
         tries++;
@@ -168,7 +199,7 @@ export async function createSpace(name: string) {
   const result = await fetch(`${GRC20_API_URL}/deploy`, {
     method: 'POST',
     body: JSON.stringify({
-      initialEditorAddress: getChecksumAddress(walletClient.account.address),
+      initialEditorAddress: getChecksumAddress((await wallet).account.address),
       spaceName: name
     })
   });

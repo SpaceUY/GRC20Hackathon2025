@@ -9,6 +9,30 @@ export type NewEntity = {
   operations: Op[];
 };
 
+export function createTag(tag): NewEntity {
+  if (!env.spaceId) throw new Error('Space ID not set in .env file');
+
+  const operations: Op[] = [];
+
+  const entityId = tag.mainnetGrc20Id || tag.testnetGrc20Id || Id.generate();
+
+  operations.push(
+    // Assign name to entity
+    createTripletOp(tag.name, SystemIds.NAME_ATTRIBUTE, entityId)
+  );
+
+  operations.push(
+    // Add tag type relation
+    createRelationOp(
+      entityId,
+      'UnP1LtXV3EhrhvRADFcMZK', // Tag property ID
+      SystemIds.TYPES_ATTRIBUTE
+    )
+  );
+
+  return { entityId, operations };
+}
+
 export function createAcademicField(academicField): NewEntity {
   if (!env.spaceId) throw new Error('Space ID not set in .env file');
 
@@ -96,7 +120,9 @@ export function createPaper(paper): NewEntity {
     // Add publish in relation
     createRelationOp(
       entityId,
-      'UG39GhyzSv91SiXSJYLCPV', // arXiv project ID
+      env.chain === 'mainnet'
+        ? 'AU2SsFo229T757y2V1JzJ3'
+        : 'UG39GhyzSv91SiXSJYLCPV', // arXiv project ID
       '61dgWvCDk8QRW2yrfkHuia', // Published in property ID
       projectRelationId
     )
@@ -127,30 +153,56 @@ export function createPaper(paper): NewEntity {
       .filter(Boolean)
   );
 
-  operations.push(
-    // Add topics
-    ...paper.categories
-      .map((category) => {
-        let topicId =
-          env.chain === 'mainnet'
-            ? category.mainnetGrc20Id
-            : category.testnetGrc20Id;
-        if (!topicId) {
-          throw new Error(`AcademyField ${category.name} not found in GRC20`);
-          const newCategory = createAcademicField(category);
-          topicId = newCategory.entityId;
-          operations.push(...newCategory.operations);
-        }
-        return createRelationOp(
+  paper.categories.forEach((academicField) => {
+    const academicFieldId =
+      env.chain === 'mainnet'
+        ? academicField.mainnetGrc20Id
+        : academicField.testnetGrc20Id;
+
+    if (!academicFieldId) {
+      throw new Error(`AcademicField ${academicField.name} not found in GRC20`);
+    }
+
+    operations.push(
+      // Add academic field
+      createRelationOp(
+        entityId,
+        academicFieldId,
+        env.chain === 'mainnet'
+          ? '6xrjWUAjKEc5UFtk3onDpx'
+          : '9bCuX6B9KZDSaY8xtghNZo' // Academic fields property ID. (using topics in testnet)
+      )
+    );
+
+    if (env.chain === 'mainnet' && academicField.mainnetSpaceId) {
+      operations.push(
+        // Add relate space
+        createRelationOp(
           entityId,
-          env.chain === 'mainnet'
-            ? category.mainnetGrc20Id
-            : category.testnetGrc20Id,
-          '9bCuX6B9KZDSaY8xtghNZo' // Topics property ID
-        );
-      })
-      .filter(Boolean)
-  );
+          academicField.mainnetGrc20Id,
+          'CHwmK8bk4KMCqBNiV2waL9' // Relates spaces property ID
+        )
+      );
+    }
+  });
+
+  paper.tags.forEach((tag) => {
+    const tagId =
+      env.chain === 'mainnet' ? tag.mainnetGrc20Id : tag.testnetGrc20Id;
+
+    if (!tagId) {
+      throw new Error(`Tag ${tag.name} not found in GRC20`);
+    }
+
+    operations.push(
+      // Add tag
+      createRelationOp(
+        entityId,
+        tagId,
+        '5d9VVey3wusmk98Uv3v5LM' // Tags property ID
+      )
+    );
+  });
 
   operations.push(
     // Add publish date
@@ -163,10 +215,22 @@ export function createPaper(paper): NewEntity {
   );
 
   operations.push(
+    // Add source link
+    createTripletOp(
+      paper.sourceLink,
+      '93stf6cgYvBsdPruRzq1KK', // Web URL property
+      entityId,
+      'URL'
+    )
+  );
+
+  operations.push(
     // Add download link
     createTripletOp(
       paper.downloadLink,
-      '93stf6cgYvBsdPruRzq1KK', // Web URL property ID TODO: using download link here, check if ok
+      env.chain === 'mainnet'
+        ? 'VF98P6w3kt2XJMWp7Ky54S'
+        : 'GDAurTnB8YPL6UA5nfHpLb', // Download URL property
       entityId,
       'URL'
     )

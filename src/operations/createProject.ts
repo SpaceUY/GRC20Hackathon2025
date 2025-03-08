@@ -94,7 +94,7 @@ async function createProject() {
 
 async function main() {
   const operations = await createProject();
-  await publish(operations, 'Create arXiv project entity');
+  await publish({ ops: operations, opName: 'Create arXiv project entity' });
 }
 
 main();
