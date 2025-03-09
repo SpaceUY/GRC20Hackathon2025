@@ -42,4 +42,8 @@ We are using the code to upload the previously mentioned areas, but it could be 
 2. Open a terminal at the root of the project and run `npm install`.
 3. Check the `index.ts` file and comment out the steps you are not interested in running, you can run all of them at the same time, or one at a time by editing that file.
 4. (Optional) Run `docker compose up` to start a local MongoDB instance, you can choose to use another service or instance, and replace the link in the `.env` file.
-5. Run `npm run dev` in the terminal.
+5. Run `npm run dev` in the terminal to run the index file.
+
+> NOTE: the current index file is meant to show the steps needed to use the entire code, I suggest to run step by step and ensure each step works properly.
+
+6. You could also run each file inside operations separately using `npx tsx src/operations/*.ts` to create the entities.

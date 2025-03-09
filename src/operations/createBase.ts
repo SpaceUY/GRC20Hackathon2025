@@ -60,7 +60,7 @@ export async function fromDBToGRC20({
       tripleOps.push(...operations);
 
       console.log(
-        chalk.green(`Created new ${model.modelName} entity: ${document.name}`)
+        `Created new ${model.modelName} entity: ${chalk.green(document.name)}`
       );
     });
 
@@ -69,14 +69,13 @@ export async function fromDBToGRC20({
     } else {
       await publish({
         ops: tripleOps,
-        opName: `Create ${model.modelName} entities`,
+        opName: `Create ${documentUpdates.length} ${model.modelName} entities`,
         spaceId
       });
 
       // We want to save the documents after the operations are published
       await Promise.all(documentUpdates.map((document) => document.save()));
     }
-    process.exit(0);
   } catch (error) {
     console.error('Error creating papers:', error);
     process.exit(1);
