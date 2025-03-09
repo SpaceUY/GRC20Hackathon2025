@@ -22,7 +22,7 @@ The papers have some categories associated with them in arXiv, so we decided to 
 
 The papers will have a title, an abstract, authors, academic fields, related spaces, tags, a published date, a web URL, and a download URL.
 
-![image](https://github.com/user-attachments/assets/bc80a554-4267-42b7-a194-c58e63d4be5f)
+![image](https://github.com/user-attachments/assets/d731c84e-c8f6-4bca-9124-3667548fcc51)
 
 ## How to use the code
 
