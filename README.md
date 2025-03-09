@@ -4,23 +4,25 @@ This code is used for the [GRC20 Hackathon](https://thegraph.com/grc20-hackathon
 
 ## Proposal
 
-For the hackathon we were assigned the academic fields of Economics and Finance, with types Course, Lesson, Paper, School, and Topic.
+For the hackathon, we were assigned the academic fields of Economics and Finance: Course, Lesson, Paper, School, and Topic.
 
-We choose to work with Economic and Finance papers and choose to use Arxiv.org to get the papers.
+We chose to work with Economic and Finance papers and decided to use Arxiv.org to get the papers.
 
-Arxiv is a curated research-sharing platform, that provides an API and has the paper's metadata well structured and organized in its categories.
+Arxiv is a curated research-sharing platform that provides an API and has the paper's metadata well-structured and organized in its categories.
 
 ## Data structure
 
-With the papers as the main entity to track, we think the entry point would be to identify its main characteristics, they would be part of spaces related to their categories or fields (focusing on economics and finances, but we could track other categories associated to the same papers), and have one or more authors associated with them.
+With the papers as the main entity to track, we think the entry point would be to identify its main characteristics, they would be part of spaces related to their categories or academic fields (focusing on economics and finances, but we could track other categories associated to the same papers), and have one or more authors associated with them.
 
-For the authors, we have only its name, but that would serve to identify it as a node and possibly associate different papers with the same author.
+For the authors, we have only their names, but that would serve to identify it as a node and possibly associate different papers with the same author.
 
-For the academic field spaces, it is important to check for already existing ones, since it's the one with more chances to be already used by someone else.
+For the academic field spaces, it is important to check for already existing ones, since it's the one with more chances to be already used by someone else. We ended up deciding to use the already existing academic fields and relate it to the paper with the academic fields property, but also, if that academic field has an associated space, link it in the related spaces.
 
-The papers will have a title, an abstract, authors, categories, published date, last update date, a download link, and an arxiv id or link so anyone can track its source.
+The papers have some categories associated with them in arXiv, so we decided to map those categories to tags.
 
-![image](https://github.com/user-attachments/assets/752499fe-896a-4232-8387-5a46d9457669)
+The papers will have a title, an abstract, authors, academic fields, related spaces, tags, a published date, a web URL, and a download URL.
+
+![image](https://github.com/user-attachments/assets/bc80a554-4267-42b7-a194-c58e63d4be5f)
 
 ## How to use the code
 
@@ -44,6 +46,6 @@ We are using the code to upload the previously mentioned areas, but it could be 
 4. (Optional) Run `docker compose up` to start a local MongoDB instance, you can choose to use another service or instance, and replace the link in the `.env` file.
 5. Run `npm run dev` in the terminal to run the index file.
 
-> NOTE: the current index file is meant to show the steps needed to use the entire code, I suggest to run step by step and ensure each step works properly.
+> NOTE: the current index file is meant to show the steps needed to use the entire code, I suggest running step by step and ensure each step works properly.
 
 6. You could also run each file inside operations separately using `npx tsx src/operations/*.ts` to create the entities.
